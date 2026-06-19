@@ -64,7 +64,9 @@ export default function Account() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <img src="/jiffy-logo.png" alt="JiffyLaundry" className="h-10 w-auto object-contain" />
+            <div className="bg-slate-900 px-3 py-1.5 rounded-xl inline-flex">
+              <img src="/jiffy-logo.png" alt="JiffyLaundry" className="h-9 w-auto object-contain" />
+            </div>
           </div>
           <Show when="signed-in">
             <p className="text-gray-500 text-sm mt-1">{user?.firstName} {user?.lastName} • {user?.emailAddresses?.[0]?.emailAddress}</p>
