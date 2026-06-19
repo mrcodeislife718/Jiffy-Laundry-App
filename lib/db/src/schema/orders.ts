@@ -1,10 +1,9 @@
-import { pgTable, text, serial, timestamp, date, numeric, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, date, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const ordersTable = pgTable("orders", {
   id: serial("id").primaryKey(),
-  userId: text("user_id"),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   email: text("email"),
@@ -17,9 +16,7 @@ export const ordersTable = pgTable("orders", {
   estimatedPrice: numeric("estimated_price", { precision: 10, scale: 2 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
-}, (table) => [
-  index("orders_user_id_idx").on(table.userId),
-]);
+});
 
 export const insertOrderSchema = createInsertSchema(ordersTable).omit({
   id: true,

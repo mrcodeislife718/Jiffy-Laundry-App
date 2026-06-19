@@ -200,8 +200,6 @@ components:
       properties:
         id:
           type: integer
-        userId:
-          type: ["string", "null"]
         name:
           type: string
         phone:

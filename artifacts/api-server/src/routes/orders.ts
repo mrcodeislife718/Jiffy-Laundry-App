@@ -1,7 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, count, and, sql, isNull, or } from "drizzle-orm";
+import { eq, count, and, sql } from "drizzle-orm";
 import { db, ordersTable } from "@workspace/db";
-import { getAuth } from "@clerk/express";
 import {
   ListOrdersQueryParams,
   CreateOrderBody,
@@ -13,17 +12,6 @@ import {
 
 const router: IRouter = Router();
 
-function serializeOrder(o: typeof ordersTable.$inferSelect) {
-  return {
-    ...o,
-    userId: o.userId ?? null,
-    email: o.email ?? null,
-    specialInstructions: o.specialInstructions ?? null,
-    estimatedPrice: o.estimatedPrice ? parseFloat(o.estimatedPrice) : null,
-    createdAt: o.createdAt.toISOString(),
-  };
-}
-
 router.get("/orders", async (req, res): Promise<void> => {
   const params = ListOrdersQueryParams.safeParse(req.query);
   if (!params.success) {
@@ -31,25 +19,21 @@ router.get("/orders", async (req, res): Promise<void> => {
     return;
   }
 
-  const auth = getAuth(req);
-  const userId = auth?.userId ?? null;
-  const mine = req.query.mine === "true";
-
   const query = db.select().from(ordersTable).$dynamic();
-
-  if (mine && userId) {
-    // user's own orders only
-    if (params.data.status) {
-      query.where(and(eq(ordersTable.userId, userId), eq(ordersTable.status, params.data.status)));
-    } else {
-      query.where(eq(ordersTable.userId, userId));
-    }
-  } else if (params.data.status) {
+  if (params.data.status) {
     query.where(eq(ordersTable.status, params.data.status));
   }
 
   const orders = await query.orderBy(sql`${ordersTable.createdAt} DESC`);
-  res.json(orders.map(serializeOrder));
+  res.json(
+    orders.map((o) => ({
+      ...o,
+      email: o.email ?? null,
+      specialInstructions: o.specialInstructions ?? null,
+      estimatedPrice: o.estimatedPrice ? parseFloat(o.estimatedPrice) : null,
+      createdAt: o.createdAt.toISOString(),
+    }))
+  );
 });
 
 router.get("/orders/stats", async (req, res): Promise<void> => {
@@ -61,7 +45,7 @@ router.get("/orders/stats", async (req, res): Promise<void> => {
     .from(ordersTable)
     .where(eq(ordersTable.scheduledDate, today));
 
-  res.json({
+  const stats = {
     total: allOrders.length,
     pending: allOrders.filter((o) => o.status === "pending").length,
     inProgress: allOrders.filter((o) =>
@@ -70,7 +54,9 @@ router.get("/orders/stats", async (req, res): Promise<void> => {
     delivered: allOrders.filter((o) => o.status === "delivered").length,
     cancelled: allOrders.filter((o) => o.status === "cancelled").length,
     todayPickups: todayPickupsResult[0]?.count ?? 0,
-  });
+  };
+
+  res.json(stats);
 });
 
 router.post("/orders", async (req, res): Promise<void> => {
@@ -79,9 +65,6 @@ router.post("/orders", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-
-  const auth = getAuth(req);
-  const userId = auth?.userId ?? null;
 
   const priceMap: Record<string, number> = {
     wash_fold: 15.99,
@@ -95,7 +78,6 @@ router.post("/orders", async (req, res): Promise<void> => {
   const [order] = await db
     .insert(ordersTable)
     .values({
-      userId,
       name: parsed.data.name,
       phone: parsed.data.phone,
       email: parsed.data.email ?? null,
@@ -109,7 +91,13 @@ router.post("/orders", async (req, res): Promise<void> => {
     })
     .returning();
 
-  res.status(201).json(serializeOrder(order));
+  res.status(201).json({
+    ...order,
+    email: order.email ?? null,
+    specialInstructions: order.specialInstructions ?? null,
+    estimatedPrice: order.estimatedPrice ? parseFloat(order.estimatedPrice) : null,
+    createdAt: order.createdAt.toISOString(),
+  });
 });
 
 router.get("/orders/:id", async (req, res): Promise<void> => {
@@ -129,7 +117,13 @@ router.get("/orders/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json(serializeOrder(order));
+  res.json({
+    ...order,
+    email: order.email ?? null,
+    specialInstructions: order.specialInstructions ?? null,
+    estimatedPrice: order.estimatedPrice ? parseFloat(order.estimatedPrice) : null,
+    createdAt: order.createdAt.toISOString(),
+  });
 });
 
 router.patch("/orders/:id", async (req, res): Promise<void> => {
@@ -163,7 +157,13 @@ router.patch("/orders/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json(serializeOrder(order));
+  res.json({
+    ...order,
+    email: order.email ?? null,
+    specialInstructions: order.specialInstructions ?? null,
+    estimatedPrice: order.estimatedPrice ? parseFloat(order.estimatedPrice) : null,
+    createdAt: order.createdAt.toISOString(),
+  });
 });
 
 router.delete("/orders/:id", async (req, res): Promise<void> => {
@@ -184,7 +184,13 @@ router.delete("/orders/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json(serializeOrder(order));
+  res.json({
+    ...order,
+    email: order.email ?? null,
+    specialInstructions: order.specialInstructions ?? null,
+    estimatedPrice: order.estimatedPrice ? parseFloat(order.estimatedPrice) : null,
+    createdAt: order.createdAt.toISOString(),
+  });
 });
 
 export default router;

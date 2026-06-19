@@ -108,7 +108,7 @@ function QuickQuoteForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="q-service">Service Type</Label>
-            <Select value={serviceType} onValueChange={(val) => setServiceType(val as ServiceType)}>
+            <Select value={serviceType} onValueChange={(val) => setServiceType(val as QuoteInputServiceType)}>
               <SelectTrigger id="q-service">
                 <SelectValue placeholder="Select service" />
               </SelectTrigger>
