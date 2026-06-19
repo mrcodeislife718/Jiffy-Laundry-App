@@ -20,113 +20,92 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-gray-50 pb-16 md:pb-0 md:flex-row">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-screen sticky top-0">
-        <div className="bg-slate-900 px-5 py-4">
-          <Link href="/" className="flex items-center">
-            <img src="/jiffy-logo.png" alt="JiffyLaundry" className="h-14 w-auto object-contain" />
+    <div className="flex flex-col min-h-[100dvh] bg-gray-50">
+      {/* Full-width black header bar */}
+      <header className="bg-black sticky top-0 z-20 w-full overflow-hidden h-16">
+        <div className="flex items-center justify-between px-6 h-16">
+          <Link href="/" className="flex items-center h-full py-2">
+            <img src="/jiffy-logo.png" alt="JiffyLaundry" className="h-full w-auto max-w-[160px] object-contain object-left" />
           </Link>
-        </div>
-        <nav className="flex-1 px-4 space-y-2">
-          {navItems.map((item) => {
-            const isActive = location === item.href;
-            return (
+
+          {/* Desktop nav links in header */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive = location === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/10 text-white"
+                      : "text-white/70 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            <Show when="signed-in">
               <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                  isActive
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                href="/admin"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  location === "/admin"
+                    ? "bg-white/10 text-white"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
               >
-                <item.icon className="w-5 h-5" />
-                {item.label}
+                <LayoutDashboard className="w-4 h-4" />
+                Admin
               </Link>
-            );
-          })}
-          
-          <Show when="signed-in">
-            <Link
-              href="/admin"
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                location === "/admin"
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
-            >
-              <LayoutDashboard className="w-5 h-5" />
-              Admin
-            </Link>
-          </Show>
-        </nav>
-        
-        <div className="p-4 border-t border-gray-100">
-          <Show when="signed-in">
-            <div className="flex items-center justify-between px-2 py-2">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <Avatar className="h-9 w-9 bg-primary/10 text-primary">
-                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="truncate">
-                  <div className="text-sm font-medium text-gray-900 truncate">
+            </Show>
+          </nav>
+
+          {/* Right side: user controls */}
+          <div className="flex items-center gap-3">
+            <Show when="signed-in">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="h-9 w-9 cursor-pointer border-2 border-white/20 hover:border-white/40 transition-colors">
+                    <AvatarFallback className="bg-primary text-white font-semibold text-sm">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <div className="px-2 py-1.5 text-sm font-medium text-gray-900 border-b border-gray-100 mb-1 truncate">
                     {user?.firstName} {user?.lastName}
                   </div>
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => signOut({ redirectUrl: basePath || "/" })} title="Sign out">
-                <LogOut className="w-5 h-5 text-gray-500" />
-              </Button>
-            </div>
-          </Show>
-          <Show when="signed-out">
-            <Link href="/sign-in">
-              <Button className="w-full">Sign In</Button>
-            </Link>
-          </Show>
-        </div>
-      </div>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin" className="cursor-pointer w-full flex items-center">
+                      <LayoutDashboard className="w-4 h-4 mr-2" /> Admin Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer"
+                    onClick={() => signOut({ redirectUrl: basePath || "/" })}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" /> Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Show>
 
-      {/* Main Content */}
-      <main className="flex-1 w-full max-w-5xl mx-auto pb-8 md:p-8 relative">
-        <div className="md:hidden flex items-center justify-between p-4 bg-white sticky top-0 z-10 border-b border-gray-100 shadow-sm">
-          <Link href="/" className="flex items-center bg-slate-900 px-3 py-1.5 rounded-xl">
-            <img src="/jiffy-logo.png" alt="JiffyLaundry" className="h-8 w-auto object-contain" />
-          </Link>
-          
-          <Show when="signed-in">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar className="h-8 w-8 bg-primary/10 text-primary cursor-pointer border border-primary/20">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5 text-sm font-medium text-gray-900 border-b border-gray-100 mb-1 truncate">
-                  {user?.firstName} {user?.lastName}
-                </div>
-                <DropdownMenuItem asChild>
-                  <Link href="/admin" className="cursor-pointer w-full flex items-center">
-                    <LayoutDashboard className="w-4 h-4 mr-2" /> Admin Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer" onClick={() => signOut({ redirectUrl: basePath || "/" })}>
-                  <LogOut className="w-4 h-4 mr-2" /> Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Show>
-          <Show when="signed-out">
-            <Link href="/sign-in" className="text-sm font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-full">
-              Sign In
-            </Link>
-          </Show>
+            <Show when="signed-out">
+              <Link href="/sign-in">
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-semibold">
+                  Sign In
+                </Button>
+              </Link>
+            </Show>
+          </div>
         </div>
+      </header>
+
+      {/* Page content */}
+      <main className="flex-1 w-full max-w-5xl mx-auto pb-20 md:pb-8 px-4 md:px-8 pt-6">
         {children}
       </main>
 
