@@ -34,6 +34,8 @@ export const OrderStatus = {
 
 export interface Order {
   id: number;
+  /** @nullable */
+  userId?: string | null;
   name: string;
   phone: string;
   /** @nullable */

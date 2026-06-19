@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Clock, XCircle, MapPin, Calendar, ChevronRight } from "lucide-react";
+import { Package, Clock, XCircle, MapPin, Calendar, ChevronRight, FileText } from "lucide-react";
+import { Show, useUser } from "@clerk/react";
+
 type OrderStatus = "pending" | "confirmed" | "picked_up" | "in_progress" | "ready" | "delivered" | "cancelled";
 
 export const getStatusColor = (status: OrderStatus) => {
@@ -29,13 +31,14 @@ export const getServiceLabel = (service: string) => {
     case "wash_fold": return "Wash & Fold";
     case "dry_cleaning": return "Dry Cleaning";
     case "ironing": return "Ironing";
-    case "express": return "Express";
+    case "express": return "Express (Same Day)";
     default: return service;
   }
 };
 
 export default function Account() {
-  const { data: orders, isLoading } = useListOrders();
+  const { isSignedIn, user } = useUser();
+  const { data: orders, isLoading } = useListOrders(isSignedIn ? ({ mine: "true" } as any) : undefined);
   const { data: stats } = useGetOrderStats();
   const cancelOrder = useCancelOrder();
   const queryClient = useQueryClient();
@@ -58,9 +61,24 @@ export default function Account() {
       exit={{ opacity: 0 }}
       className="p-4 md:p-0 space-y-6 max-w-4xl mx-auto"
     >
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
+          <Show when="signed-in">
+            <p className="text-gray-500 mt-1">{user?.firstName} {user?.lastName} • {user?.emailAddresses?.[0]?.emailAddress}</p>
+          </Show>
+        </div>
       </div>
+
+      <Show when="signed-out">
+        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 text-center">
+          <h2 className="text-lg font-bold text-gray-900 mb-2">Sign in to track your orders</h2>
+          <p className="text-gray-600 mb-4">View your complete order history, track active pickups, and manage your account.</p>
+          <Link href="/sign-in">
+            <Button>Sign In / Register</Button>
+          </Link>
+        </div>
+      </Show>
 
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -90,7 +108,7 @@ export default function Account() {
           {isLoading ? (
             Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)
           ) : orders?.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+            <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
               <Package className="w-12 h-12 mx-auto text-gray-300 mb-3" />
               <h3 className="text-lg font-medium text-gray-900">No orders yet</h3>
               <p className="text-gray-500 mb-4">Schedule your first pickup today!</p>
@@ -131,11 +149,17 @@ export default function Account() {
                         Track <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </Link>
+                    
+                    <Link href={`/orders/${order.id}`} className="w-full">
+                      <Button variant="outline" className="w-full justify-center text-gray-600 bg-white hover:bg-gray-50">
+                        <FileText className="w-4 h-4 mr-2" /> Receipt
+                      </Button>
+                    </Link>
 
                     {order.status === "pending" && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Button variant="ghost" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50">
                             Cancel Order
                           </Button>
                         </AlertDialogTrigger>

@@ -1,8 +1,16 @@
 import { Link, useLocation } from "wouter";
-import { Home, CalendarPlus, Tag, User } from "lucide-react";
+import { Home, CalendarPlus, Tag, User, LayoutDashboard, LogOut } from "lucide-react";
+import { useUser, useClerk, Show } from "@clerk/react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
   const navItems = [
     { href: "/", label: "Home", icon: Home },
@@ -38,7 +46,48 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          
+          <Show when="signed-in">
+            <Link
+              href="/admin"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                location === "/admin"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              }`}
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              Admin
+            </Link>
+          </Show>
         </nav>
+        
+        <div className="p-4 border-t border-gray-100">
+          <Show when="signed-in">
+            <div className="flex items-center justify-between px-2 py-2">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <Avatar className="h-9 w-9 bg-primary/10 text-primary">
+                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="truncate">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {user?.firstName} {user?.lastName}
+                  </div>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => signOut({ redirectUrl: basePath || "/" })} title="Sign out">
+                <LogOut className="w-5 h-5 text-gray-500" />
+              </Button>
+            </div>
+          </Show>
+          <Show when="signed-out">
+            <Link href="/sign-in">
+              <Button className="w-full">Sign In</Button>
+            </Link>
+          </Show>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -47,6 +96,36 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/" className="text-xl font-bold text-primary">
             Jiffy<span className="text-gray-900">Laundry</span>
           </Link>
+          
+          <Show when="signed-in">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="h-8 w-8 bg-primary/10 text-primary cursor-pointer border border-primary/20">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5 text-sm font-medium text-gray-900 border-b border-gray-100 mb-1 truncate">
+                  {user?.firstName} {user?.lastName}
+                </div>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin" className="cursor-pointer w-full flex items-center">
+                    <LayoutDashboard className="w-4 h-4 mr-2" /> Admin Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer" onClick={() => signOut({ redirectUrl: basePath || "/" })}>
+                  <LogOut className="w-4 h-4 mr-2" /> Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </Show>
+          <Show when="signed-out">
+            <Link href="/sign-in" className="text-sm font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-full">
+              Sign In
+            </Link>
+          </Show>
         </div>
         {children}
       </main>

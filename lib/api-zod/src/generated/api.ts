@@ -26,6 +26,7 @@ export const ListOrdersQueryParams = zod.object({
 
 export const ListOrdersResponseItem = zod.object({
   "id": zod.number(),
+  "userId": zod.string().nullish(),
   "name": zod.string(),
   "phone": zod.string(),
   "email": zod.string().nullish(),
@@ -83,6 +84,7 @@ export const GetOrderParams = zod.object({
 
 export const GetOrderResponse = zod.object({
   "id": zod.number(),
+  "userId": zod.string().nullish(),
   "name": zod.string(),
   "phone": zod.string(),
   "email": zod.string().nullish(),
@@ -114,6 +116,7 @@ export const UpdateOrderBody = zod.object({
 
 export const UpdateOrderResponse = zod.object({
   "id": zod.number(),
+  "userId": zod.string().nullish(),
   "name": zod.string(),
   "phone": zod.string(),
   "email": zod.string().nullish(),
@@ -137,6 +140,7 @@ export const CancelOrderParams = zod.object({
 
 export const CancelOrderResponse = zod.object({
   "id": zod.number(),
+  "userId": zod.string().nullish(),
   "name": zod.string(),
   "phone": zod.string(),
   "email": zod.string().nullish(),
