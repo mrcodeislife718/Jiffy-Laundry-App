@@ -1,6 +1,6 @@
-# [Project name]
+# JiffyLaundry
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A full-stack PWA for an on-demand laundry pickup and delivery service. Users can schedule pickups, get quick price quotes, view promotions, and track their orders.
 
 ## Run & Operate
 
@@ -19,18 +19,35 @@ _Replace the heading above with the project's name, and this line with one sente
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- Frontend: React + Vite, Tailwind CSS, Framer Motion, Wouter
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — OpenAPI contract (source of truth)
+- `lib/api-client-react/src/generated/` — generated React Query hooks
+- `lib/api-zod/src/generated/` — generated Zod schemas for the server
+- `lib/db/src/schema/orders.ts` — orders table
+- `lib/db/src/schema/offers.ts` — offers/promotions table
+- `artifacts/api-server/src/routes/` — Express route handlers (orders, quotes, offers)
+- `artifacts/jiffylaundry/src/pages/` — frontend pages (home, schedule, offers, account, track)
+- `artifacts/jiffylaundry/public/manifest.json` — PWA manifest
+- `artifacts/jiffylaundry/public/sw.js` — service worker
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Contract-first: OpenAPI spec drives both frontend hooks (Orval → React Query) and backend validation (Orval → Zod)
+- All API routes live in the shared `api-server` artifact; the frontend is a static Vite build
+- Pricing is computed server-side in the quotes route (base + per-kg rate)
+- Order cancellation uses PATCH /orders/:id with status=cancelled rather than DELETE to preserve history
+- PWA manifest + service worker registered in main.tsx for installability
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Schedule laundry pickups (wash & fold, dry cleaning, ironing, express)
+- Get instant price quotes based on service type and estimated weight
+- View and track orders through a visual status timeline
+- Browse active promotions and discount offers
+- Account page shows order history and stats
 
 ## User preferences
 
@@ -38,7 +55,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After changing `lib/db/src/schema/`, run `pnpm run typecheck:libs` before typechecking the api-server — stale lib declarations cause false "module has no exported member" errors
+- Do not import from `@workspace/api-client-react/src/generated/api.schemas` deep paths — only import from `@workspace/api-client-react` (the package barrel)
 
 ## Pointers
 

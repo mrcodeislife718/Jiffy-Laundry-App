@@ -3,13 +3,20 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: JiffyLaundry API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: orders
+    description: Laundry order operations
+  - name: quotes
+    description: Price quote operations
+  - name: offers
+    description: Promotions and offers
+
 paths:
   /healthz:
     get:
@@ -24,6 +31,159 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List all orders
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, confirmed, picked_up, in_progress, ready, delivered, cancelled]
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Schedule a pickup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid input
+
+  /orders/stats:
+    get:
+      operationId: getOrderStats
+      tags: [orders]
+      summary: Get order statistics for dashboard
+      responses:
+        "200":
+          description: Order stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderStats"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateOrder
+      tags: [orders]
+      summary: Update an order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdate"
+      responses:
+        "200":
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+    delete:
+      operationId: cancelOrder
+      tags: [orders]
+      summary: Cancel an order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+
+  /quotes:
+    post:
+      operationId: createQuote
+      tags: [quotes]
+      summary: Get a quick price quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "200":
+          description: Quote calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /offers:
+    get:
+      operationId: listOffers
+      tags: [offers]
+      summary: List active promotions and offers
+      responses:
+        "200":
+          description: List of offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Offer"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +194,152 @@ components:
       required:
         - status
 
+    Order:
+      type: object
+      required: [id, name, phone, address, serviceType, scheduledDate, scheduledTime, status, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        address:
+          type: string
+        serviceType:
+          type: string
+          enum: [wash_fold, dry_cleaning, ironing, express]
+        scheduledDate:
+          type: string
+        scheduledTime:
+          type: string
+        specialInstructions:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, confirmed, picked_up, in_progress, ready, delivered, cancelled]
+        estimatedPrice:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+
+    OrderInput:
+      type: object
+      required: [name, phone, address, serviceType, scheduledDate, scheduledTime]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+        address:
+          type: string
+          minLength: 1
+        serviceType:
+          type: string
+          enum: [wash_fold, dry_cleaning, ironing, express]
+        scheduledDate:
+          type: string
+        scheduledTime:
+          type: string
+        specialInstructions:
+          type: string
+
+    OrderUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, picked_up, in_progress, ready, delivered, cancelled]
+        scheduledDate:
+          type: string
+        scheduledTime:
+          type: string
+        specialInstructions:
+          type: string
+        estimatedPrice:
+          type: number
+
+    OrderStats:
+      type: object
+      required: [total, pending, inProgress, delivered, cancelled, todayPickups]
+      properties:
+        total:
+          type: integer
+        pending:
+          type: integer
+        inProgress:
+          type: integer
+        delivered:
+          type: integer
+        cancelled:
+          type: integer
+        todayPickups:
+          type: integer
+
+    QuoteInput:
+      type: object
+      required: [address, serviceType]
+      properties:
+        address:
+          type: string
+          minLength: 1
+        serviceType:
+          type: string
+          enum: [wash_fold, dry_cleaning, ironing, express]
+        estimatedWeight:
+          type: number
+
+    Quote:
+      type: object
+      required: [serviceType, estimatedPrice, breakdown, currency]
+      properties:
+        serviceType:
+          type: string
+        estimatedPrice:
+          type: number
+        currency:
+          type: string
+        breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        deliveryFee:
+          type: number
+        note:
+          type: string
+
+    QuoteLineItem:
+      type: object
+      required: [label, price]
+      properties:
+        label:
+          type: string
+        price:
+          type: number
+
+    Offer:
+      type: object
+      required: [id, title, description, discount, validUntil, active]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        discount:
+          type: string
+        badgeText:
+          type: ["string", "null"]
+        validUntil:
+          type: string
+        active:
+          type: boolean
+        imageUrl:
+          type: ["string", "null"]
