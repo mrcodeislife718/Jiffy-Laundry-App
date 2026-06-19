@@ -63,9 +63,14 @@ export default function Account() {
     >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <img src="/jiffy-logo.png" alt="JiffyLaundry" className="h-10 w-auto object-contain" />
+          </div>
           <Show when="signed-in">
-            <p className="text-gray-500 mt-1">{user?.firstName} {user?.lastName} • {user?.emailAddresses?.[0]?.emailAddress}</p>
+            <p className="text-gray-500 text-sm mt-1">{user?.firstName} {user?.lastName} • {user?.emailAddresses?.[0]?.emailAddress}</p>
+          </Show>
+          <Show when="signed-out">
+            <p className="text-gray-500 text-sm mt-1">Your laundry, handled.</p>
           </Show>
         </div>
       </div>

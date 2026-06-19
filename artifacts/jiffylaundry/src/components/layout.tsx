@@ -23,9 +23,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col min-h-[100dvh] bg-gray-50 pb-16 md:pb-0 md:flex-row">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-screen sticky top-0">
-        <div className="p-6">
-          <Link href="/" className="text-2xl font-bold text-primary flex items-center gap-2">
-            Jiffy<span className="text-gray-900">Laundry</span>
+        <div className="p-5">
+          <Link href="/" className="flex items-center">
+            <img src="/jiffy-logo.png" alt="JiffyLaundry" className="h-14 w-auto object-contain" />
           </Link>
         </div>
         <nav className="flex-1 px-4 space-y-2">
@@ -93,8 +93,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <main className="flex-1 w-full max-w-5xl mx-auto pb-8 md:p-8 relative">
         <div className="md:hidden flex items-center justify-between p-4 bg-white sticky top-0 z-10 border-b border-gray-100 shadow-sm">
-          <Link href="/" className="text-xl font-bold text-primary">
-            Jiffy<span className="text-gray-900">Laundry</span>
+          <Link href="/" className="flex items-center">
+            <img src="/jiffy-logo.png" alt="JiffyLaundry" className="h-10 w-auto object-contain" />
           </Link>
           
           <Show when="signed-in">
