@@ -82,13 +82,11 @@ function QuickQuoteForm() {
   const [address, setAddress] = useState("");
   const [serviceType, setServiceType] = useState<ServiceType>("wash_fold");
   const [weight, setWeight] = useState("");
-  
   const createQuote = useCreateQuote();
   
   const handleQuote = (e: React.FormEvent) => {
     e.preventDefault();
     if (!address) return;
-    
     createQuote.mutate({
       data: {
         address,
@@ -108,7 +106,7 @@ function QuickQuoteForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="q-service">Service Type</Label>
-            <Select value={serviceType} onValueChange={(val) => setServiceType(val as QuoteInputServiceType)}>
+            <Select value={serviceType} onValueChange={(val) => setServiceType(val as ServiceType)}>
               <SelectTrigger id="q-service">
                 <SelectValue placeholder="Select service" />
               </SelectTrigger>
@@ -143,26 +141,16 @@ function QuickQuoteForm() {
           <CardContent>
             <div className="space-y-2 text-sm">
               {createQuote.data.breakdown.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-gray-600">
-                  <span>{item.label}</span>
-                  <span className="font-medium text-gray-900">${item.price.toFixed(2)}</span>
+                <div key={idx} className="flex justify-between">
+                  <span className="text-gray-600">{item.label}</span>
+                  <span className="font-medium">${item.amount.toFixed(2)}</span>
                 </div>
               ))}
-              {createQuote.data.deliveryFee !== undefined && (
-                <div className="flex justify-between text-gray-600 pt-2 border-t border-gray-200 mt-2">
-                  <span>Delivery Fee</span>
-                  <span className="font-medium text-gray-900">
-                    {createQuote.data.deliveryFee === 0 ? "FREE" : `$${createQuote.data.deliveryFee.toFixed(2)}`}
-                  </span>
-                </div>
-              )}
             </div>
           </CardContent>
           <CardFooter>
             <Link href="/schedule" className="w-full">
-              <Button variant="default" className="w-full">
-                Schedule This Pickup <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              <Button className="w-full gap-2">Book This Service <ArrowRight className="w-4 h-4" /></Button>
             </Link>
           </CardFooter>
         </Card>
